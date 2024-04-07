@@ -8,11 +8,13 @@ plugins {
 }
 
 dependencies {
+    kotlinNativeCompilerPluginClasspath(project(":compiler-plugin:kotlin"))
     kspCommonMainMetadata(project(":compiler:ksp"))
 }
 
 kotlin {
     targetHierarchy.default()
+
     jvm()
     androidTarget {
         publishLibraryVariants("release")
@@ -53,7 +55,7 @@ android {
 }
 
 tasks.withType(KotlinCompilationTask::class.java).configureEach {
-    if(name != "kspCommonMainKotlinMetadata") {
+    if (name != "kspCommonMainKotlinMetadata") {
         dependsOn("kspCommonMainKotlinMetadata")
     }
 }

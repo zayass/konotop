@@ -6,6 +6,7 @@ plugins {
 
 kotlin {
     targetHierarchy.default()
+
     jvm()
     androidTarget {
         publishLibraryVariants("release")
@@ -25,7 +26,6 @@ kotlin {
             api(libs.kotlinx.coroutines.core)
 
             api(libs.ktor.client.core)
-            api(libs.ktor.client.resources)
             api(libs.ktor.client.content.negotiation)
             api(libs.ktor.serialization.kotlinx.json)
         }

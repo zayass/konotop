@@ -7,4 +7,4 @@ import kotlin.reflect.KClass
 @OptIn(ExperimentalAssociatedObjects::class)
 @AssociatedObjectKey
 @Retention(AnnotationRetention.BINARY)
-actual annotation class AssociatedFactory(actual val factory: KClass<out ApiFactory<*>>)
+internal annotation class AssociatedFactory(val factory: KClass<out ApiFactory<*>>)

@@ -17,15 +17,12 @@ class RootProcessor(
     private val generator = Generator(logger)
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        logger.warn("!!! Started")
-
         val services = resolver.getServiceInterfaces()
 
         for (service in services) {
             process(service)
         }
 
-        logger.warn("!!! Finished")
         return emptyList()
     }
 

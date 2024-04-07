@@ -18,3 +18,4 @@ rootProject.name = "konotop"
 include(":runtime")
 include(":integration-tests")
 include(":compiler:ksp")
+include(":compiler-plugin:kotlin")
