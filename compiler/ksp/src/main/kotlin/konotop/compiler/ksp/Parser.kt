@@ -15,15 +15,20 @@ internal fun KSClassDeclaration.toModel(): Service {
 }
 
 internal fun KSFunctionDeclaration.toModel(): Method {
-    val annotation = getAnnotation(GET)
+    val annotation = getAnnotationByMeta(HttpVerb)
     val path = annotation?.arguments?.firstOrNull()?.value as? String
         ?: error("$annotation should have value")
 
     val arguments = parameters.map { it.toModel() }
 
+    val httpMethod = HttpMethod.valueOf(
+        annotation.shortName.asString()
+    )
+
     return Method(
         origin = this,
         path = path,
+        httpMethod = httpMethod,
         arguments = arguments
     )
 }

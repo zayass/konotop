@@ -1,13 +1,10 @@
 package konotop.http
 
-
-/** Make a GET request.  */
+/** Make a POST request.  */
 @MustBeDocumented
 @HttpVerb
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.SOURCE)
-annotation class GET(
+annotation class POST(
     val value: String = ""
 )
-
-

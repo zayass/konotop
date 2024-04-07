@@ -1,13 +1,10 @@
 package konotop.http
 
-
-/** Make a GET request.  */
+/** Make a OPTIONS request.  */
 @MustBeDocumented
 @HttpVerb
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.SOURCE)
-annotation class GET(
+annotation class OPTIONS(
     val value: String = ""
 )
-
-

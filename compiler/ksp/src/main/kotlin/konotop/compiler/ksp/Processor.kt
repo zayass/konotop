@@ -1,14 +1,11 @@
 package konotop.compiler.ksp
 
-import com.google.devtools.ksp.processing.CodeGenerator
-import com.google.devtools.ksp.processing.KSPLogger
-import com.google.devtools.ksp.processing.Resolver
-import com.google.devtools.ksp.processing.SymbolProcessor
+import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.squareup.kotlinpoet.ksp.writeTo
 
-class RootProcessor(
+class Processor(
     private val options: Options,
     private val codeGenerator: CodeGenerator,
     private val logger: KSPLogger,
@@ -29,5 +26,15 @@ class RootProcessor(
     private fun process(service: KSClassDeclaration) {
         val file = generator.generate(service.toModel())
         file.writeTo(codeGenerator, aggregating = true)
+    }
+}
+
+class ProcessorProvider : SymbolProcessorProvider {
+    override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor {
+        return Processor(
+            Options.from(environment.options),
+            environment.codeGenerator,
+            environment.logger
+        )
     }
 }

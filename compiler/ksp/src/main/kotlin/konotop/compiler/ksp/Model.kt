@@ -21,7 +21,13 @@ data class Method(
 )
 
 enum class HttpMethod {
-    GET
+    DELETE,
+    GET,
+    HEAD,
+    OPTIONS,
+    PATCH,
+    POST,
+    PUT
 }
 
 sealed interface Arg {

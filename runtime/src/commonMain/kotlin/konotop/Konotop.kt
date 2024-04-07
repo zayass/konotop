@@ -13,7 +13,6 @@ class Konotop private constructor(
 
     fun <T: Any> create(service: KClass<T>): T {
         val factory = service.lookupFactory()
-            ?: map[service]
             ?: throw RuntimeException("Unknown service: ${service.qualifiedName}")
 
         @Suppress("UNCHECKED_CAST")
@@ -32,18 +31,4 @@ class Konotop private constructor(
             return Konotop(client!!)
         }
     }
-
-
-    companion object {
-        private var map = mutableMapOf<KClass<*>, (HttpClient) -> Any>()
-
-        fun <T: Any> register(service: KClass<T>, factory: (HttpClient) -> T) {
-            map[service] = factory
-        }
-
-        inline fun <reified T: Any> register(noinline factory: (HttpClient) -> T) {
-            register(T::class, factory)
-        }
-    }
 }
-

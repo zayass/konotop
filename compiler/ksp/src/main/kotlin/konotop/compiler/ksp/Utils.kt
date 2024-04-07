@@ -1,19 +1,15 @@
 package konotop.compiler.ksp
 
-import com.google.devtools.ksp.getAnnotationsByType
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.*
 import com.squareup.kotlinpoet.ClassName
 
 fun KSClassDeclaration.isInterface() = classKind == ClassKind.INTERFACE
 
-fun KSClassDeclaration.getCompanion() =
-    declarations.find { it is KSClassDeclaration && it.isCompanionObject } as? KSClassDeclaration
-
 fun KSClassDeclaration.isServiceInterface() =
     isInterface() && getAllFunctions().any { it.isServiceMethod() }
 
-fun KSFunctionDeclaration.isServiceMethod() = hasAnnotation(GET)
+fun KSFunctionDeclaration.isServiceMethod() = hasMetaAnnotation(HttpVerb)
 
 fun KSClassDeclaration.getServiceMethods() =
     getAllFunctions().filter { it.isServiceMethod() }
@@ -22,8 +18,18 @@ fun KSAnnotated.getAnnotation(annotationClassName: ClassName) = annotations.firs
     it.match(annotationClassName)
 }
 
+fun KSAnnotated.getAnnotationByMeta(annotationClassName: ClassName) = annotations.firstOrNull { annotation ->
+    val resolved = annotation.annotationType.resolve().declaration
+    resolved.hasAnnotation(annotationClassName)
+}
+
 fun KSAnnotated.hasAnnotation(annotationClassName: ClassName) = annotations.any {
     it.match(annotationClassName)
+}
+
+fun KSAnnotated.hasMetaAnnotation(annotationClassName: ClassName) = annotations.any { annotation ->
+    val resolved = annotation.annotationType.resolve().declaration
+    resolved.hasAnnotation(annotationClassName)
 }
 
 private fun KSAnnotation.match(className: ClassName): Boolean {

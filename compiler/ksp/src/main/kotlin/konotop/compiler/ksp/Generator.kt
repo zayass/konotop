@@ -1,8 +1,6 @@
 package konotop.compiler.ksp
 
 import com.google.devtools.ksp.processing.KSPLogger
-import com.google.devtools.ksp.symbol.KSClassDeclaration
-import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSValueParameter
 import com.google.devtools.ksp.symbol.Modifier
 import com.squareup.kotlinpoet.*
@@ -10,8 +8,8 @@ import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.plusParameter
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
 import io.ktor.client.*
+import io.ktor.client.statement.*
 import konotop.ApiFactory
-import kotlin.reflect.KClass
 
 class Generator(val logger: KSPLogger) {
 
@@ -21,15 +19,18 @@ class Generator(val logger: KSPLogger) {
         .builder(packageName, implementationName)
         .apply {
             addImport("io.ktor.client.call", "body")
-            addImport("io.ktor.client.request", "get")
+            addImport(
+                packageName = "io.ktor.client.request",
+                names = listOf("delete", "get", "head", "options", "patch", "post", "put")
+            )
             addType(generateType())
             addType(generateFactoryObject())
-            addFunction(generateFactoryMethod(origin.getCompanion()))
         }
         .build()
 
     private fun Service.generateFactoryObject() = TypeSpec
         .objectBuilder(factoryName)
+        .addModifiers(KModifier.INTERNAL)
         .addSuperinterface(ApiFactory::class.asClassName().plusParameter(origin.toClassName()))
         .addFunction(
             FunSpec
@@ -40,22 +41,6 @@ class Generator(val logger: KSPLogger) {
                 .addCode(CodeBlock.of("return $implementationName(httpClient)"))
                 .build()
         )
-        .build()
-
-    private fun Service.generateFactoryMethod(companion: KSClassDeclaration? = null) = FunSpec
-        .builder("create")
-        .apply {
-            if (companion != null) {
-                receiver(companion.toClassName())
-            } else {
-                receiver(KClass::class.asClassName().plusParameter(origin.toClassName()))
-            }
-
-            addParameter("httpClient", HttpClient::class)
-            returns(origin.toClassName())
-
-            addCode(CodeBlock.of("return $implementationName(httpClient)"))
-        }
         .build()
 
     private fun Service.generateType() = TypeSpec
@@ -122,7 +107,17 @@ class Generator(val logger: KSPLogger) {
             }
             unindent()
 
-            addStatement("return httpClient.get(path).body()")
+            val verb = httpMethod.name.lowercase()
+            val returnType = origin.returnType
+
+            if (returnType == null) {
+                addStatement("httpClient.$verb(path)")
+            } else if (returnType.toTypeName() == HttpResponse::class.asTypeName()) {
+                addStatement("return httpClient.$verb(path)")
+            } else {
+                addStatement("return httpClient.$verb(path).body()")
+            }
+
         }
         .build()
 }
