@@ -1,24 +1,35 @@
 package konotop.compiler.ksp
 
+import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSValueParameter
 
+interface HasDeclaration<T : KSAnnotated> {
+    val declaration: T
+}
+
 data class Service(
-    val origin: KSClassDeclaration,
+    override val declaration: KSClassDeclaration,
     val methods: List<Method>
-) {
-    val packageName = origin.packageName.asString()
-    val factoryName = "${origin.simpleName.asString()}Factory"
-    val implementationName = "${origin.simpleName.asString()}Impl"
+) : HasDeclaration<KSClassDeclaration> {
+    val packageName = declaration.packageName.asString()
+    val factoryName = "${declaration.simpleName.asString()}Factory"
+    val implementationName = "${declaration.simpleName.asString()}Impl"
 }
 
 data class Method(
-    val origin: KSFunctionDeclaration,
+    override val declaration: KSFunctionDeclaration,
     val path: String,
     val httpMethod: HttpMethod = HttpMethod.GET,
     val arguments: List<Arg> = emptyList()
-)
+) : HasDeclaration<KSFunctionDeclaration> {
+    fun hasBody() = arguments.any { it is Arg.BodyArgument }
+
+    fun bodyArgument() = arguments
+        .filterIsInstance<Arg.BodyArgument>()
+        .firstOrNull()
+}
 
 enum class HttpMethod {
     DELETE,
@@ -30,15 +41,19 @@ enum class HttpMethod {
     PUT
 }
 
-sealed interface Arg {
-    val origin: KSValueParameter
+sealed interface Arg : HasDeclaration<KSValueParameter> {
+    override val declaration: KSValueParameter
+
+    data class BodyArgument(
+        override val declaration: KSValueParameter,
+    ): Arg
 
     data class PathArgument(
-        override val origin: KSValueParameter,
+        override val declaration: KSValueParameter,
         val name: String,
     ): Arg
 
     data class Unknown(
-        override val origin: KSValueParameter,
+        override val declaration: KSValueParameter,
     ): Arg
 }

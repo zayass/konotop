@@ -8,7 +8,7 @@ internal fun KSClassDeclaration.toModel(): Service {
     val methods = getServiceMethods().map { it.toModel() }
 
     val serviceModel = Service(
-        origin = this,
+        declaration = this,
         methods = methods.toList()
     )
     return serviceModel
@@ -26,7 +26,7 @@ internal fun KSFunctionDeclaration.toModel(): Method {
     )
 
     return Method(
-        origin = this,
+        declaration = this,
         path = path,
         httpMethod = httpMethod,
         arguments = arguments
@@ -35,13 +35,16 @@ internal fun KSFunctionDeclaration.toModel(): Method {
 
 internal fun KSValueParameter.toModel(): Arg {
     val pathAnnotation = getAnnotation(Path)
+    val bodyAnnotation = getAnnotation(Body)
 
     return if (pathAnnotation != null) {
         val name = pathAnnotation.arguments.firstOrNull()?.value as? String
             ?: error("$pathAnnotation should have value")
 
-        Arg.PathArgument(origin = this, name = name)
+        Arg.PathArgument(declaration = this, name = name)
+    } else if (bodyAnnotation != null) {
+        Arg.BodyArgument(declaration = this)
     } else {
-        Arg.Unknown(origin = this)
+        Arg.Unknown(declaration = this)
     }
 }
