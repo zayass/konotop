@@ -32,28 +32,17 @@ class MethodGenerator(private val logger: KSPLogger, private val method: Method)
         }
     }
 
-    private fun FunSpec.Builder.buildBody() = apply {
+    private fun FunSpec.Builder.buildBody() =
         addCode(
-            CodeBlock
-                .builder()
-                .emitMethodBody()
-                .build()
+            buildCodeBlock {
+                emitMethodBody()
+            }
         )
-    }
 
     private fun CodeBlock.Builder.emitMethodBody() = buildWith(method) {
-        addStatement("val path = \"${path}\"")
+        emitPathVal()
 
-        indent()
-        for (argument in pathArguments()) {
-            val kotlinArgumentName = argument.kotlinArgumentName
-            val pathArgumentName = argument.pathArgumentName
-
-            addStatement(".replace(\"{${pathArgumentName}}\", ${kotlinArgumentName}.toString())")
-        }
-        unindent()
-
-        val verb = httpMethod.name.lowercase()
+        val verb = KtorMembers.httpVerb(httpMethod)
         val returnType = declaration.returnType
         val isRawResponse = returnType?.toTypeName() == HttpResponse::class.asTypeName()
         val bodyArgument = bodyArgument()
@@ -64,28 +53,40 @@ class MethodGenerator(private val logger: KSPLogger, private val method: Method)
         }
 
         addStatement("httpClient")
-        indent()
+        withIndent {
+            if (bodyArgument != null || queryArguments.isNotEmpty()) {
+                withControlFlow(".%M(path)", verb) {
+                    emitHttpBody(bodyArgument)
+                    emitQueryArguments(queryArguments)
+                }
+            } else {
+                addStatement(".%M(path)", verb)
+            }
 
-        if (bodyArgument != null || queryArguments.isNotEmpty()) {
-            beginControlFlow(".$verb(path)")
-            emitHttpBody(bodyArgument)
-            emitQueryArguments(queryArguments)
-            endControlFlow()
-        } else {
-            addStatement(".$verb(path)")
+            if (!isRawResponse) {
+                addStatement(".%M()", KtorMembers.getBody)
+            }
         }
+    }
 
-        if (!isRawResponse) {
-            addStatement(".body()")
+    private fun CodeBlock.Builder.emitPathVal() = buildWith(method) {
+        addStatement("val path = %S", path)
+
+        withIndent {
+            for (argument in pathArguments()) {
+                val kotlinArgumentName = argument.kotlinArgumentName
+                val pathArgumentName = argument.pathArgumentName
+                val pathArgumentPlaceholder = "{${pathArgumentName}}"
+
+                addStatement(".replace(%S, ${kotlinArgumentName}.toString())", pathArgumentPlaceholder)
+            }
         }
-
-        unindent()
     }
 
     private fun CodeBlock.Builder.emitHttpBody(argument: Arg.BodyArgument?) {
         if (argument != null) {
-            addStatement("contentType(ContentType.Application.Json)")
-            addStatement("setBody(${argument.kotlinArgumentName})")
+            addStatement("%M(%M)", KtorMembers.setContentType, KtorMembers.applicationJson)
+            addStatement("%M(${argument.kotlinArgumentName})", KtorMembers.setBody)
         }
     }
 
@@ -94,20 +95,20 @@ class MethodGenerator(private val logger: KSPLogger, private val method: Method)
             return
         }
 
-        beginControlFlow("url")
-        for (argument in arguments) {
-            emitQueryArgument(argument)
+        withControlFlow("url") {
+            for (argument in arguments) {
+                emitQueryArgument(argument)
+            }
         }
-        endControlFlow()
     }
 
     private fun CodeBlock.Builder.emitQueryArgument(argument: Arg.QueryArgument) = buildWith(argument) {
         if (isNullable) {
-            beginControlFlow("$kotlinArgumentName?.let")
-            addStatement("""parameters.append("$queryArgumentName", it.toString())""")
-            endControlFlow()
+            withControlFlow("$kotlinArgumentName?.let") {
+                addStatement("parameters.append(%S, it.toString())", queryArgumentName)
+            }
         } else {
-            addStatement("""parameters.append("$queryArgumentName", $kotlinArgumentName.toString())""")
+            addStatement("parameters.append(%S, $kotlinArgumentName.toString())", queryArgumentName)
         }
     }
 }
@@ -116,6 +117,9 @@ inline fun <Builder, Receiver> Builder.buildWith(receiver: Receiver, block: Rece
     receiver.block()
     return this
 }
+
+inline fun CodeBlock.Builder.withControlFlow(controlFlow: String, vararg args: Any?, builderAction: CodeBlock.Builder.() -> Unit) =
+    beginControlFlow(controlFlow, *args).also(builderAction).endControlFlow()
 
 private fun KSValueParameter.toParameterSpec() = ParameterSpec(
     name!!.asString(),

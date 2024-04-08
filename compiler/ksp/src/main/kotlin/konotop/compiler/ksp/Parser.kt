@@ -15,7 +15,7 @@ internal fun KSClassDeclaration.toModel(): Service {
 }
 
 internal fun KSFunctionDeclaration.toModel(): Method {
-    val annotation = getAnnotationByMeta(HttpVerb)
+    val annotation = getAnnotationByMeta(Annotations.HttpVerb)
     val path = annotation?.arguments?.firstOrNull()?.value as? String
         ?: error("$annotation should have value")
 
@@ -34,9 +34,9 @@ internal fun KSFunctionDeclaration.toModel(): Method {
 }
 
 internal fun KSValueParameter.toModel(): Arg {
-    val bodyAnnotation = getAnnotation(Body)
-    val pathAnnotation = getAnnotation(Path)
-    val queryAnnotation = getAnnotation(Query)
+    val bodyAnnotation = getAnnotation(Annotations.Body)
+    val pathAnnotation = getAnnotation(Annotations.Path)
+    val queryAnnotation = getAnnotation(Annotations.Query)
 
     return when {
         bodyAnnotation != null -> {

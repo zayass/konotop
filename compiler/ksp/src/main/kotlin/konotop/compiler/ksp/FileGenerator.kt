@@ -11,28 +11,20 @@ class FileGenerator(val logger: KSPLogger) {
 
     fun generate(service: Service) = service.generateFile()
 
-    private fun Service.generateFile() = FileSpec
-        .builder(packageName, implementationName)
-        .apply {
-            addImport(
-                packageName = "io.ktor.http",
-                names = listOf("contentType", "ContentType")
-            )
-            addImport(
-                packageName = "io.ktor.client.call",
-                names = listOf("body")
-            )
-            addImport(
-                packageName = "io.ktor.client.request",
-                names = listOf("delete", "get", "head", "options", "patch", "post", "put", "setBody")
-            )
-            addType(generateType())
-            addType(generateFactoryObject())
-        }
-        .build()
+    private fun Service.generateFile(): FileSpec {
+        val implementationClass = generateType()
+        val factoryObject = generateFactoryObject(implementationClass)
 
-    private fun Service.generateFactoryObject() = TypeSpec
+        return FileSpec
+            .builder(packageName, implementationName)
+            .addType(implementationClass)
+            .addType(factoryObject)
+            .build()
+    }
+
+    private fun Service.generateFactoryObject(implementationClass: TypeSpec) = TypeSpec
         .objectBuilder(factoryName)
+        .addOriginatingKSClass(declaration)
         .addModifiers(KModifier.INTERNAL)
         .addSuperinterface(ApiFactory::class.asClassName().plusParameter(declaration.toClassName()))
         .addFunction(
@@ -41,13 +33,14 @@ class FileGenerator(val logger: KSPLogger) {
                 .addModifiers(KModifier.OVERRIDE)
                 .addParameter("httpClient", HttpClient::class)
                 .returns(declaration.toClassName())
-                .addCode(CodeBlock.of("return $implementationName(httpClient)"))
+                .addCode(CodeBlock.of("return %N(httpClient)", implementationClass))
                 .build()
         )
         .build()
 
     private fun Service.generateType() = TypeSpec
         .classBuilder(implementationName)
+        .addOriginatingKSClass(declaration)
         .apply {
             addModifiers(KModifier.PRIVATE)
             addSuperinterface(declaration.toClassName())
