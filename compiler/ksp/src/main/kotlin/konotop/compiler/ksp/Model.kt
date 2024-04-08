@@ -1,9 +1,6 @@
 package konotop.compiler.ksp
 
-import com.google.devtools.ksp.symbol.KSAnnotated
-import com.google.devtools.ksp.symbol.KSClassDeclaration
-import com.google.devtools.ksp.symbol.KSFunctionDeclaration
-import com.google.devtools.ksp.symbol.KSValueParameter
+import com.google.devtools.ksp.symbol.*
 
 interface HasDeclaration<T : KSAnnotated> {
     val declaration: T
@@ -24,11 +21,22 @@ data class Method(
     val httpMethod: HttpMethod = HttpMethod.GET,
     val arguments: List<Arg> = emptyList()
 ) : HasDeclaration<KSFunctionDeclaration> {
-    fun hasBody() = arguments.any { it is Arg.BodyArgument }
+
+    val name
+        get() = declaration.simpleName.getShortName()
+
+    fun isSuspend() =
+        declaration.modifiers.contains(Modifier.SUSPEND)
 
     fun bodyArgument() = arguments
         .filterIsInstance<Arg.BodyArgument>()
         .firstOrNull()
+
+    fun pathArguments() = arguments
+        .filterIsInstance<Arg.PathArgument>()
+
+    fun queryArguments() = arguments
+        .filterIsInstance<Arg.QueryArgument>()
 }
 
 enum class HttpMethod {
@@ -41,19 +49,32 @@ enum class HttpMethod {
     PUT
 }
 
-sealed interface Arg : HasDeclaration<KSValueParameter> {
-    override val declaration: KSValueParameter
+abstract class Arg : HasDeclaration<KSValueParameter> {
+    abstract override val declaration: KSValueParameter
+
+    val kotlinArgumentName by lazy {
+        declaration.name!!.asString()
+    }
+
+    val isNullable by lazy {
+        declaration.type.resolve().isMarkedNullable
+    }
 
     data class BodyArgument(
         override val declaration: KSValueParameter,
-    ): Arg
+    ): Arg()
 
     data class PathArgument(
         override val declaration: KSValueParameter,
-        val name: String,
-    ): Arg
+        val pathArgumentName: String,
+    ): Arg()
+
+    data class QueryArgument(
+        override val declaration: KSValueParameter,
+        val queryArgumentName: String,
+    ): Arg()
 
     data class Unknown(
         override val declaration: KSValueParameter,
-    ): Arg
+    ): Arg()
 }

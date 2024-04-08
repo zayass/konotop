@@ -11,7 +11,7 @@ class Processor(
     private val logger: KSPLogger,
 ) : SymbolProcessor {
 
-    private val generator = Generator(logger)
+    private val generator = FileGenerator(logger)
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         val services = resolver.getServiceInterfaces()

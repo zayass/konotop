@@ -1,17 +1,13 @@
 package konotop.compiler.ksp
 
 import com.google.devtools.ksp.processing.KSPLogger
-import com.google.devtools.ksp.symbol.KSValueParameter
-import com.google.devtools.ksp.symbol.Modifier
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.plusParameter
 import com.squareup.kotlinpoet.ksp.toClassName
-import com.squareup.kotlinpoet.ksp.toTypeName
 import io.ktor.client.*
-import io.ktor.client.statement.*
 import konotop.ApiFactory
 
-class Generator(val logger: KSPLogger) {
+class FileGenerator(val logger: KSPLogger) {
 
     fun generate(service: Service) = service.generateFile()
 
@@ -81,70 +77,6 @@ class Generator(val logger: KSPLogger) {
         )
     }
 
-    private fun Method.generateFunction() = FunSpec
-        .builder(declaration.simpleName.asString())
-        .apply {
-            addModifiers(KModifier.OVERRIDE)
-
-            if (declaration.modifiers.contains(Modifier.SUSPEND)) {
-                addModifiers(KModifier.SUSPEND)
-            }
-
-            for (argument in arguments) {
-                addParameter(argument.declaration.toParameterSpec())
-            }
-
-            val returnType = declaration.returnType
-            if (returnType != null) {
-                returns(returnType.toTypeName())
-            }
-        }
-        .addCode(generateBody())
-        .build()
-
-
-    private fun Method.generateBody() = CodeBlock
-        .builder()
-        .apply {
-            addStatement("val path = \"${path}\"")
-
-            indent()
-            for (argument in arguments.filterIsInstance<Arg.PathArgument>()) {
-                addStatement(".replace(\"{${argument.name}}\", ${argument.declaration.name!!.asString()}.toString())")
-            }
-            unindent()
-
-            val verb = httpMethod.name.lowercase()
-            val returnType = declaration.returnType
-            val isRawResponse = returnType?.toTypeName() == HttpResponse::class.asTypeName()
-            val bodyArgumentName = bodyArgument()?.declaration?.name?.asString()
-
-            if (returnType != null) {
-                add("return ")
-            }
-
-            addStatement("httpClient")
-            indent()
-
-            if (bodyArgumentName != null) {
-                beginControlFlow(".$verb(path)")
-                addStatement("contentType(ContentType.Application.Json)")
-                addStatement("setBody($bodyArgumentName)")
-                endControlFlow()
-            } else {
-                addStatement(".$verb(path)")
-            }
-
-            if (!isRawResponse) {
-                addStatement(".body()")
-            }
-
-            unindent()
-        }
-        .build()
+    private fun Method.generateFunction() =
+        MethodGenerator(logger, this).generate()
 }
-
-private fun KSValueParameter.toParameterSpec() = ParameterSpec(
-    name!!.asString(),
-    this.type.toTypeName()
-)

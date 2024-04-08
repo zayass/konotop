@@ -11,3 +11,4 @@ data class Todo(
     val isDeleted: Boolean = false,
     val deletedOn: String? = null,
 )
+

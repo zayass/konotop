@@ -3,6 +3,12 @@ package konotop.integration
 import konotop.http.*
 
 interface TodoApi {
+    @GET("/todos")
+    suspend fun getTodos(
+        @Query("limit") limit: Int,
+        @Query("skip") offset: Int? = null
+    ): Todos
+
     @GET("/todos/{id}")
     suspend fun getTodo(@Path("id") id: Int): Todo
 

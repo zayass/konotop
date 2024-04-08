@@ -17,6 +17,17 @@ class IntegrationTest {
 
     private val api = konotop.create<TodoApi>()
 
+    @Test
+    fun testGetAsyncWithQueryArgument() = runTest {
+        val responseWithLimit = api.getTodos(10)
+        val responseWithLimitAndOffset = api.getTodos(10, 30)
+
+        assertEquals(10, responseWithLimit.limit)
+        assertEquals(0, responseWithLimit.offset)
+
+        assertEquals(10, responseWithLimitAndOffset.limit)
+        assertEquals(30, responseWithLimitAndOffset.offset)
+    }
 
     @Test
     fun testGetAsyncWithPathArgument() = runTest {

@@ -34,17 +34,28 @@ internal fun KSFunctionDeclaration.toModel(): Method {
 }
 
 internal fun KSValueParameter.toModel(): Arg {
-    val pathAnnotation = getAnnotation(Path)
     val bodyAnnotation = getAnnotation(Body)
+    val pathAnnotation = getAnnotation(Path)
+    val queryAnnotation = getAnnotation(Query)
 
-    return if (pathAnnotation != null) {
-        val name = pathAnnotation.arguments.firstOrNull()?.value as? String
-            ?: error("$pathAnnotation should have value")
+    return when {
+        bodyAnnotation != null -> {
+            Arg.BodyArgument(declaration = this)
+        }
+        pathAnnotation != null -> {
+            val name = pathAnnotation.arguments.firstOrNull()?.value as? String
+                ?: error("$pathAnnotation should have value")
 
-        Arg.PathArgument(declaration = this, name = name)
-    } else if (bodyAnnotation != null) {
-        Arg.BodyArgument(declaration = this)
-    } else {
-        Arg.Unknown(declaration = this)
+            Arg.PathArgument(declaration = this, pathArgumentName = name)
+        }
+        queryAnnotation != null -> {
+            val name = queryAnnotation.arguments.firstOrNull()?.value as? String
+                ?: error("$queryAnnotation should have value")
+
+            Arg.QueryArgument(declaration = this, queryArgumentName = name)
+        }
+        else -> {
+            Arg.Unknown(declaration = this)
+        }
     }
 }
