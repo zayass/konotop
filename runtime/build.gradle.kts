@@ -5,7 +5,7 @@ plugins {
 }
 
 kotlin {
-    targetHierarchy.default()
+    applyDefaultHierarchyTemplate()
 
     jvm()
     androidTarget {
@@ -20,6 +20,8 @@ kotlin {
     iosArm64()
     iosSimulatorArm64()
     linuxX64()
+    macosX64()
+    macosArm64()
 
     sourceSets {
         commonMain.dependencies {
@@ -35,7 +37,11 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
         }
 
-        iosMain.dependencies {
+        linuxMain.dependencies {
+            implementation(libs.ktor.client.curl)
+        }
+
+        appleMain.dependencies {
             implementation(libs.ktor.client.darwin)
         }
     }
