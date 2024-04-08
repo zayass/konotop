@@ -7,16 +7,22 @@ import org.jetbrains.kotlin.backend.common.lower
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
+import org.jetbrains.kotlin.platform.TargetPlatform
+import org.jetbrains.kotlin.platform.isJs
 import org.jetbrains.kotlin.platform.konan.isNative
 
 class LoweringExtension : IrGenerationExtension {
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
-        if (!pluginContext.platform.isNative()) {
+        if (!pluginContext.platform.shouldGenerateForPlatform()) {
             return
         }
 
         val pass = LoweringPass(pluginContext)
         pass.lower(moduleFragment)
+    }
+
+    private fun TargetPlatform?.shouldGenerateForPlatform(): Boolean {
+        return isNative() || isJs()
     }
 }
 

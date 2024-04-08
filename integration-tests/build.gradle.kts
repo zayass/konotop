@@ -8,6 +8,7 @@ plugins {
 }
 
 dependencies {
+    kotlinCompilerPluginClasspath(project(":compiler-plugin:kotlin"))
     kotlinNativeCompilerPluginClasspath(project(":compiler-plugin:kotlin"))
     kspCommonMainMetadata(project(":compiler:ksp"))
 }
@@ -30,6 +31,9 @@ kotlin {
     linuxX64()
     macosX64()
     macosArm64()
+    js {
+        nodejs()
+    }
 
     sourceSets {
         commonMain {

@@ -19,9 +19,9 @@ class Konotop private constructor(
 
     fun <T: Any> create(service: KClass<T>): T {
         val factory = service.lookupFactory()
-            ?: throw RuntimeException("Unknown service: ${service.qualifiedName}")
+            ?: throw RuntimeException("Unknown service: ${service.simpleName}")
 
-        return factory(client)
+        return factory.create(client)
     }
 
     class Builder {

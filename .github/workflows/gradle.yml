@@ -17,6 +17,8 @@ jobs:
         include:
           - target: jvmTest
             os: ubuntu-latest
+          - target: jsNodeTest
+            os: ubuntu-latest
           - target: linuxX64Test
             os: ubuntu-latest
     runs-on: ${{ matrix.os }}

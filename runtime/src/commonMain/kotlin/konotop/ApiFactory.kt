@@ -2,8 +2,6 @@ package konotop
 
 import io.ktor.client.*
 
-interface ApiFactory<T> : (HttpClient) -> T {
+interface ApiFactory<T> {
     fun create(httpClient: HttpClient): T
-
-    override operator fun invoke(httpClient: HttpClient) = create(httpClient)
 }

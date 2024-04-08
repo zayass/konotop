@@ -22,6 +22,11 @@ kotlin {
     linuxX64()
     macosX64()
     macosArm64()
+    js {
+        browser()
+        nodejs()
+    }
+
 
     sourceSets {
         commonMain.dependencies {
@@ -43,6 +48,10 @@ kotlin {
 
         appleMain.dependencies {
             implementation(libs.ktor.client.darwin)
+        }
+
+        jsMain.dependencies {
+            implementation(libs.ktor.client.js)
         }
     }
 }
