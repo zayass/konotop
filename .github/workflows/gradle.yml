@@ -21,6 +21,8 @@ jobs:
             os: ubuntu-latest
           - target: linuxX64Test
             os: ubuntu-latest
+          - target: macosArm64Test
+            os: macos-latest
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -34,6 +36,7 @@ jobs:
         key: ${{ runner.os }}-${{ hashFiles('**/.lock') }}
     - name: Install curl
       uses: awalsh128/cache-apt-pkgs-action@v1
+      if: runner.os == 'Linux'
       with:
        packages: libcurl4-gnutls-dev
        version: 1.0

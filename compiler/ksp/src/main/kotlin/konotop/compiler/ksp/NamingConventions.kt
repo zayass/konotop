@@ -5,18 +5,15 @@ import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.MemberName.Companion.member
 import com.squareup.kotlinpoet.asClassName
 import io.ktor.http.*
-import konotop.http.Body
-import konotop.http.Path
-import konotop.http.Query
 
 object Annotations {
     private const val ANNOTATION_PACKAGE_NAME = "konotop.http"
 
     val HttpVerb = ClassName(ANNOTATION_PACKAGE_NAME, "HttpVerb")
 
-    val Body = Body::class.asClassName()
-    val Path = Path::class.asClassName()
-    val Query = Query::class.asClassName()
+    val Body = konotop.http.Body::class.asClassName()
+    val Path = konotop.http.Path::class.asClassName()
+    val Query = konotop.http.Query::class.asClassName()
 }
 
 object KtorMembers {
