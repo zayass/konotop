@@ -9,7 +9,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-class IntegrationTest {
+class DummyJsonTest {
     private val konotop = Konotop
         .Builder()
         .baseUrl("https://dummyjson.com/")
