@@ -6,6 +6,7 @@ import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.compiler.plugin.*
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.CompilerConfigurationKey
+import org.jetbrains.kotlin.ir.util.irMessageLogger
 
 private val KEY_ENABLED = CompilerConfigurationKey<Boolean>("whether the plugin is enabled")
 
@@ -43,9 +44,10 @@ class PluginRegistrar : CompilerPluginRegistrar() {
             return
         }
 
-        val logger = Logger(configuration.get(
-            CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE
-        ))
+        val logger = Logger(
+            messageCollector = configuration[CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY] ?: MessageCollector.NONE,
+            irMessageLogger = configuration.irMessageLogger
+        )
 
         IrGenerationExtension.registerExtension(LoweringExtension(logger))
     }
