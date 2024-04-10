@@ -5,11 +5,18 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.serialization)
     alias(libs.plugins.ksp)
+
+    id("konotop.compiler.plugin")
+}
+
+configurations.all {
+    resolutionStrategy.dependencySubstitution {
+        substitute(module("konotop:kotlin-compiler-plugin"))
+            .using(project(":compiler-plugin"))
+    }
 }
 
 dependencies {
-    kotlinCompilerPluginClasspath(project(":compiler-plugin:kotlin"))
-    kotlinNativeCompilerPluginClasspath(project(":compiler-plugin:kotlin"))
     kspCommonMainMetadata(project(":compiler:ksp"))
 }
 
@@ -59,6 +66,7 @@ android {
         minSdk = libs.versions.android.minSdk.get().toInt()
     }
 }
+
 
 tasks.withType(KotlinCompilationTask::class.java).configureEach {
     if (name != "kspCommonMainKotlinMetadata") {

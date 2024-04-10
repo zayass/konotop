@@ -1,5 +1,5 @@
 pluginManagement {
-    includeBuild("convention-plugins")
+    includeBuild("../convention-plugins")
 
     repositories {
         google()
@@ -11,14 +11,13 @@ pluginManagement {
 dependencyResolutionManagement {
     repositories {
         google()
+        gradlePluginPortal()
         mavenCentral()
     }
+
+    versionCatalogs {
+        create("libs") {
+            from(files("../gradle/libs.versions.toml"))
+        }
+    }
 }
-
-rootProject.name = "konotop"
-include(":runtime")
-include(":integration-tests")
-include(":compiler:ksp")
-include(":compiler-plugin")
-
-includeBuild("gradle-plugin")

@@ -11,13 +11,13 @@ import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.platform.isJs
 import org.jetbrains.kotlin.platform.konan.isNative
 
-class LoweringExtension : IrGenerationExtension {
+class LoweringExtension(private val logger: Logger) : IrGenerationExtension {
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
         if (!pluginContext.platform.shouldGenerateForPlatform()) {
             return
         }
 
-        val pass = LoweringPass(pluginContext)
+        val pass = LoweringPass(pluginContext, logger)
         pass.lower(moduleFragment)
     }
 
@@ -26,7 +26,7 @@ class LoweringExtension : IrGenerationExtension {
     }
 }
 
-class PluginContext(baseContext: IrPluginContext) : IrPluginContext by baseContext {
+class PluginContext(baseContext: IrPluginContext, val logger: Logger) : IrPluginContext by baseContext {
     val apiFactoryClass by lazy {
         referenceClass(Qualifiers.ApiFactory)
     }
@@ -36,8 +36,8 @@ class PluginContext(baseContext: IrPluginContext) : IrPluginContext by baseConte
     }
 }
 
-private class LoweringPass(baseContext: IrPluginContext) : IrElementTransformerVoid(), ClassLoweringPass {
-    private val context = PluginContext(baseContext)
+private class LoweringPass(baseContext: IrPluginContext, logger: Logger) : IrElementTransformerVoid(), ClassLoweringPass {
+    private val context = PluginContext(baseContext, logger)
 
     override fun lower(irClass: IrClass) {
         MarkerAnnotationIrGenerator.generate(irClass, context)

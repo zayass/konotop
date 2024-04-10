@@ -48,6 +48,8 @@ class MarkerAnnotationIrGenerator(
     }
 
     private fun generate() {
+        compilerContext.logger.logging("Service class found: ${irClass.name.asString()}")
+
         irClass.patchServiceInterfaceWithMarkerAnnotation(factoryIrClass)
     }
 

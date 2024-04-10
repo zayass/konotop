@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 
 object Qualifiers {
-    val packageName = FqName("konotop")
+    private val packageName = FqName("konotop")
 
     val ApiFactory = packageName.childClass("ApiFactory")
     val AssociatedFactory = packageName.childClass("AssociatedFactory")
